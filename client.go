@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/gorilla/websocket"
+	"fmt"
 )
 
 // client represents a single chatting user.
@@ -14,12 +15,15 @@ type client struct {
 
 	// room is the room this client is chatting in.
 	room *room
+
+	name string
 }
 
 func (c *client) read() {
 	for {
 		if _, msg, err := c.socket.ReadMessage(); err == nil {
-			c.room.forward <- msg
+			name := fmt.Sprintf("%s%s", c.name, ": ")
+			c.room.forward <- append([]byte(name), msg...)
 		} else {
 			break
 		}
