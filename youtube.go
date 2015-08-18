@@ -10,7 +10,7 @@ import (
 	"code.google.com/p/google-api-go-client/youtube/v3"
 )
 
-const developerKey = "PUT_KEY_HERE"
+const developerKey = "AIzaSyBLadX04H1BOhmU_7iPkVpxivCzBoKpfNc"
 
 // GetRandomWord generates a random word
 func GetRandomWord() string {
@@ -41,7 +41,7 @@ func GetRandomVideo() string {
 
 	service, err := youtube.New(client)
 	if err != nil {
-		log.Fatalf("Error creating new YouTube client: %v", err)
+		log.Printf("Error creating new YouTube client: %v", err)
 	}
 
 	// Make the API call to YouTube.
@@ -50,13 +50,12 @@ func GetRandomVideo() string {
 		MaxResults(25)
 	response, err := call.Do()
 	if err != nil {
-		log.Fatalf("Error making search API call: %v", err)
+		log.Printf("Error making search API call: %v", err)
 	} else {
 		// Iterate through each item and add it to the correct list.
 		for _, item := range response.Items {
 			if item.Id.Kind == "youtube#video" {
 				ytv := fmt.Sprintf("<iframe width=\"560\" height=\"315\" src=\"https://www.youtube.com/embed/%s\" frameborder=\"0\"></iframe>", item.Id.VideoId)
-				log.Print(ytv)
 				return ytv
 				break
 			}
