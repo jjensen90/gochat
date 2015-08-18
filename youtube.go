@@ -57,7 +57,6 @@ func GetRandomVideo() string {
 			if item.Id.Kind == "youtube#video" {
 				ytv := fmt.Sprintf("<iframe width=\"560\" height=\"315\" src=\"https://www.youtube.com/embed/%s\" frameborder=\"0\"></iframe>", item.Id.VideoId)
 				return ytv
-				break
 			}
 		}
 	}

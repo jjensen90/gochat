@@ -4,9 +4,9 @@ import (
 	"log"
 	"net/http"
 	"path/filepath"
+	"strings"
 	"sync"
 	"text/template"
-	"strings"
 )
 
 // templ represents a single template
@@ -44,9 +44,4 @@ func Contains(list []string, elem string) bool {
 		}
 	}
 	return false
-}
-
-// RandomYoutubeVideo returns a random YouTube video
-func RandomYoutubeVideo() string {
-	return "http://www.youtube.com"
 }
