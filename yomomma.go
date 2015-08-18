@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"io/ioutil"
-	"log"
 	"net/http"
 )
 
@@ -32,10 +31,7 @@ func GetYoMamaJoke() string {
 
 	var message YoMamaMessage
 
-	log.Print("Unmarshalling")
-
 	err = json.Unmarshal([]byte(jsonDataFromHTTP), &message) // here!
-	log.Print(string(jsonDataFromHTTP[:]))
 
 	if err != nil {
 		panic(err)
