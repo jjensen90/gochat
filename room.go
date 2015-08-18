@@ -3,8 +3,9 @@ package main
 import (
 	"log"
 	"net/http"
-
 	"github.com/gorilla/websocket"
+	"github.com/Pallinder/go-randomdata"
+	"fmt"
 )
 
 const (
@@ -51,7 +52,7 @@ func (r *room) run() {
 			// forward message to all clients
 			for client := range r.clients {
 				select {
-				case client.send <- msg:
+				case client.send <-msg:
 					// send the message
 				default:
 					// failed to send
@@ -75,11 +76,19 @@ func (r *room) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		socket: socket,
 		send:   make(chan []byte, messageBufferSize),
 		room:   r,
+		name: 	randomdata.SillyName(),
 	}
 
 	r.join <- client
 
-	defer func() { r.leave <- client }()
+	msg := []byte(fmt.Sprint("A new user has joined: ", client.name))
+	r.forward <-msg
+
+	defer func() {
+		r.leave <- client
+		msg := []byte(fmt.Sprint("A user has left: ", client.name))
+		r.forward <-msg
+	}()
 
 	go client.write()
 	client.read()
