@@ -20,6 +20,12 @@
 	        var socket = null;
 	        var msgBox = $("#chatbox textarea");
 	        var messages = $("#messages");
+	        $('textarea').keypress(function (e) {
+			  if (e.which == 13) {
+			    $('form#chatbox').submit();
+			    return false;    //<---- Add this line
+			  }
+			});
 	        $("#chatbox").submit(function(){
 	          if (!msgBox.val()) return false;
 	          if (!socket) {
