@@ -110,7 +110,7 @@ func (r *room) DoCommand(command string, c *client)bool {
 		return true
 	case strings.Contains(command, "/ascii"):
 		response, err := r.Asciify(command); if (err != nil) {
-			log.Fatalf("Error asciifying")
+			log.Printf("Error asciifying")
 		}
 		r.forward <-[]byte(response)
 	case command == "/yt":
@@ -134,7 +134,8 @@ func (r *room) GetAscii(query string) string {
 	url := "http://artii.herokuapp.com/make?text="
 	resp, err := http.Get(fmt.Sprintf("%s%s", url, query))
 	if err != nil {
-		panic(err)
+		log.Printf("GetAscii Error: %v", err)
+		return ""
 	}
 	defer resp.Body.Close()
 	body, _ := ioutil.ReadAll(resp.Body)
