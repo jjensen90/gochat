@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"sync"
 	"text/template"
+	"strings"
 )
 
 // templ represents a single template
@@ -38,7 +39,7 @@ func main() {
 // Contains is an InArray working with strings
 func Contains(list []string, elem string) bool {
 	for _, t := range list {
-		if t == elem {
+		if strings.Contains(elem, t) {
 			return true
 		}
 	}
