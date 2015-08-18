@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/Pallinder/go-randomdata"
 	"fmt"
+	"math/rand"
 )
 
 const (
@@ -26,6 +27,8 @@ type room struct {
 	leave chan *client
 	// clients holds all current clients in this room.
 	clients map[*client]bool
+
+	commands []string
 }
 
 // newRoom makes a new room that is ready to go.
@@ -35,6 +38,7 @@ func newRoom() *room {
 		join:    make(chan *client),
 		leave:   make(chan *client),
 		clients: make(map[*client]bool),
+		commands: []string{"/roll"},
 	}
 }
 
@@ -44,6 +48,7 @@ func (r *room) run() {
 		case client := <-r.join:
 			// joining
 			r.clients[client] = true
+			client.send <- []byte(fmt.Sprintf("Available room commands: %v", r.commands))
 		case client := <-r.leave:
 			// leaving
 			delete(r.clients, client)
@@ -92,4 +97,14 @@ func (r *room) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	go client.write()
 	client.read()
+}
+
+func (r *room) DoCommand(command string, c *client)bool {
+	switch command {
+	case "/roll":
+		r.forward <-[]byte(fmt.Sprintf("Casino: %s rolled a %d", c.name, rand.Intn(100)))
+	default:
+		return false
+	}
+	return true
 }
