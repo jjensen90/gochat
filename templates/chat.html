@@ -20,9 +20,38 @@
 	        var socket = null;
 	        var msgBox = $("#chatbox textarea");
 	        var messages = $("#messages");
+	        //stores messages sent to chat room
+	        var msgsSent = [];
+	        var msgBufferIndex = 0;
+
 	        $('textarea').keypress(function (e) {
 			  if (e.which == 13) {
 			    $('form#chatbox').submit();
+			    return false;    //<---- Add this line
+			  }
+			});
+			/**
+			 * Functionality for chat bugger
+			 */
+			$('textarea').keydown(function (e) {
+			  if (e.which == 38) { // up
+			    if (msgBufferIndex < 0) {
+			  		msgBox.val('');
+			  	} else {
+			  		msgBufferIndex -= 1;
+			    	msgBox.val(msgsSent[msgBufferIndex]);
+			  	}
+
+			    return false;    //<---- Add this line
+			  }
+			  if (e.which == 40) { //down
+			  	if (msgBufferIndex > msgsSent.length - 1) {
+			  		msgBox.val('');
+			  	} else {
+			  		msgBufferIndex += 1;
+			    	msgBox.val(msgsSent[msgBufferIndex]);
+			  	}
+
 			    return false;    //<---- Add this line
 			  }
 			});
@@ -33,6 +62,11 @@
 	            return false;
 	          }
 	          socket.send(msgBox.val());
+
+
+	          msgsSent.push(msgBox.val());
+			  msgBufferIndex = msgsSent.length;
+
 	          msgBox.val("");
 	          return false;
 	        });
