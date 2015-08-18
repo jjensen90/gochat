@@ -10,7 +10,7 @@ import (
 	"code.google.com/p/google-api-go-client/youtube/v3"
 )
 
-const developerKey = "AIzaSyBLadX04H1BOhmU_7iPkVpxivCzBoKpfNc"
+const developerKey = "YOUR_YOUTUBE_API_KEY"
 
 // GetRandomWord generates a random word
 func GetRandomWord() string {
