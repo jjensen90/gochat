@@ -44,7 +44,7 @@
 	            alert("Connection has been closed.");
 	          }
 	          socket.onmessage = function(e) {
-	            messages.append($("<li>").text(e.data));
+	            messages.append($("<li>").html(e.data));
 	          }
 	        }
 	      });

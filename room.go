@@ -1,12 +1,13 @@
 package main
 
 import (
-	"log"
-	"net/http"
-	"github.com/gorilla/websocket"
-	"github.com/Pallinder/go-randomdata"
 	"fmt"
+	"log"
 	"math/rand"
+	"net/http"
+
+	"github.com/Pallinder/go-randomdata"
+	"github.com/gorilla/websocket"
 )
 
 const (
@@ -34,11 +35,11 @@ type room struct {
 // newRoom makes a new room that is ready to go.
 func newRoom() *room {
 	return &room{
-		forward: make(chan []byte),
-		join:    make(chan *client),
-		leave:   make(chan *client),
-		clients: make(map[*client]bool),
-		commands: []string{"/roll"},
+		forward:  make(chan []byte),
+		join:     make(chan *client),
+		leave:    make(chan *client),
+		clients:  make(map[*client]bool),
+		commands: []string{"/roll", "/yt"},
 	}
 }
 
@@ -57,7 +58,7 @@ func (r *room) run() {
 			// forward message to all clients
 			for client := range r.clients {
 				select {
-				case client.send <-msg:
+				case client.send <- msg:
 					// send the message
 				default:
 					// failed to send
@@ -81,28 +82,30 @@ func (r *room) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		socket: socket,
 		send:   make(chan []byte, messageBufferSize),
 		room:   r,
-		name: 	randomdata.SillyName(),
+		name:   randomdata.SillyName(),
 	}
 
 	r.join <- client
 
 	msg := []byte(fmt.Sprint("A new user has joined: ", client.name))
-	r.forward <-msg
+	r.forward <- msg
 
 	defer func() {
 		r.leave <- client
 		msg := []byte(fmt.Sprint("A user has left: ", client.name))
-		r.forward <-msg
+		r.forward <- msg
 	}()
 
 	go client.write()
 	client.read()
 }
 
-func (r *room) DoCommand(command string, c *client)bool {
+func (r *room) DoCommand(command string, c *client) bool {
 	switch command {
 	case "/roll":
-		r.forward <-[]byte(fmt.Sprintf("Casino: %s rolled a %d", c.name, rand.Intn(100)))
+		r.forward <- []byte(fmt.Sprintf("Casino: %s rolled a %d", c.name, rand.Intn(100)))
+	case "/yt":
+		r.forward <- []byte(fmt.Sprintf("YouTube video: %s", GetRandomVideo()))
 	default:
 		return false
 	}

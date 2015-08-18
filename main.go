@@ -35,7 +35,17 @@ func main() {
 	}
 }
 
+// Contains is an InArray working with strings
 func Contains(list []string, elem string) bool {
-	for _, t := range list { if t == elem { return true } }
+	for _, t := range list {
+		if t == elem {
+			return true
+		}
+	}
 	return false
+}
+
+// RandomYoutubeVideo returns a random YouTube video
+func RandomYoutubeVideo() string {
+	return "http://www.youtube.com"
 }
