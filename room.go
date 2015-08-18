@@ -8,6 +8,9 @@ import (
 
 	"github.com/Pallinder/go-randomdata"
 	"github.com/gorilla/websocket"
+	"strings"
+	"net/url"
+	"io/ioutil"
 )
 
 const (
@@ -35,11 +38,11 @@ type room struct {
 // newRoom makes a new room that is ready to go.
 func newRoom() *room {
 	return &room{
-		forward:  make(chan []byte),
-		join:     make(chan *client),
-		leave:    make(chan *client),
-		clients:  make(map[*client]bool),
-		commands: []string{"/roll", "/yt"},
+		forward: make(chan []byte),
+		join:    make(chan *client),
+		leave:   make(chan *client),
+		clients: make(map[*client]bool),
+		commands: []string{"/roll", "/ascii", "/yt"},
 	}
 }
 
@@ -100,14 +103,40 @@ func (r *room) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	client.read()
 }
 
-func (r *room) DoCommand(command string, c *client) bool {
-	switch command {
-	case "/roll":
-		r.forward <- []byte(fmt.Sprintf("Casino: %s rolled a %d", c.name, rand.Intn(100)))
-	case "/yt":
+func (r *room) DoCommand(command string, c *client)bool {
+	switch {
+	case command == "/roll":
+		r.forward <-[]byte(fmt.Sprintf("Casino: %s rolled a %d", c.name, rand.Intn(100)))
+		return true
+	case strings.Contains(command, "/ascii"):
+		response, err := r.Asciify(command); if (err != nil) {
+			log.Fatalf("Error asciifying")
+		}
+		r.forward <-[]byte(response)
+	case command == "/yt":
 		r.forward <- []byte(fmt.Sprintf("YouTube video: %s", GetRandomVideo()))
 	default:
 		return false
 	}
 	return true
+}
+
+func (r *room) Asciify(command string) (string, error) {
+	command = strings.Replace(command, "/ascii", "", 1)
+	if (command != "") {
+		safeString := url.QueryEscape(strings.Trim(command, " "))
+		return r.GetAscii(safeString), nil
+	}
+	return "", fmt.Errorf("Error Asciifying String")
+}
+
+func (r *room) GetAscii(query string) string {
+	url := "http://artii.herokuapp.com/make?text="
+	resp, err := http.Get(fmt.Sprintf("%s%s", url, query))
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+	body, _ := ioutil.ReadAll(resp.Body)
+	return fmt.Sprintf("<pre>%s</pre>",string(body))
 }
