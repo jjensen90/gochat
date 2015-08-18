@@ -34,3 +34,8 @@ func main() {
 		log.Fatal("ListenAndServe:", err)
 	}
 }
+
+func Contains(list []string, elem string) bool {
+	for _, t := range list { if t == elem { return true } }
+	return false
+}

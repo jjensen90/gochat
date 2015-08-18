@@ -22,8 +22,13 @@ type client struct {
 func (c *client) read() {
 	for {
 		if _, msg, err := c.socket.ReadMessage(); err == nil {
-			name := fmt.Sprintf("%s%s", c.name, ": ")
-			c.room.forward <- append([]byte(name), msg...)
+			stringMessage := string(msg[:])
+			if Contains(c.room.commands, stringMessage) {
+				c.room.DoCommand(stringMessage, c)
+			} else {
+				name := fmt.Sprintf("%s: ", c.name)
+				c.room.forward <- append([]byte(name), msg...)
+			}
 		} else {
 			break
 		}
