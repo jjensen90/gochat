@@ -5,6 +5,7 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
+	"time"
 
 	"io/ioutil"
 	"net/url"
@@ -12,6 +13,7 @@ import (
 
 	"github.com/Pallinder/go-randomdata"
 	"github.com/gorilla/websocket"
+	"gopkg.in/redis.v3"
 )
 
 const (
@@ -47,18 +49,56 @@ func newRoom() *room {
 	}
 }
 
-func (r *room) run() {
+// RecentChatHistory returns array of up to `maxHistory` number of chat messages
+func RecentChatHistory(redisClient *redis.Client, maxHistory int) []string {
+	revRange := redisClient.ZRevRange(RedisChatHistoryKey, 0, -1)
+	results := revRange.Val()
+
+	if len(results) < maxHistory {
+		maxHistory = len(results)
+	}
+
+	history := []string{}
+
+	//log.Print(maxHistory)
+
+	for i := 0; i < maxHistory; i++ {
+		log.Print(results[i])
+		history = append(history, results[i])
+	}
+
+	//log.Print(history)
+
+	//log.Print(results)
+
+	return history
+}
+
+func (r *room) run(redisClient *redis.Client) {
 	for {
 		select {
 		case client := <-r.join:
 			// joining
 			r.clients[client] = true
+			chatHistory := RecentChatHistory(redisClient, 25)
+
+			for _, historicalMsg := range chatHistory {
+				client.send <- []byte(fmt.Sprintf("%v", historicalMsg))
+			}
+
 			client.send <- []byte(fmt.Sprintf("Available room commands: %v", r.commands))
 		case client := <-r.leave:
 			// leaving
 			delete(r.clients, client)
 			close(client.send)
 		case msg := <-r.forward:
+			time := time.Now()
+			timestamp := float64(time.Unix())
+
+			// store message in history
+			redisMsg := redis.Z{Score: timestamp, Member: msg}
+			redisClient.ZAdd(RedisChatHistoryKey, redisMsg)
+
 			// forward message to all clients
 			for client := range r.clients {
 				select {
@@ -129,16 +169,16 @@ func (r *room) Asciify(command string) (string, error) {
 	command = strings.Replace(command, "/ascii", "", 1)
 	if command != "" {
 		safeString := url.QueryEscape(strings.Trim(command, " "))
-		return r.GetAscii(safeString), nil
+		return r.GetASCII(safeString), nil
 	}
 	return "", fmt.Errorf("Error Asciifying String")
 }
 
-func (r *room) GetAscii(query string) string {
+func (r *room) GetASCII(query string) string {
 	url := "http://artii.herokuapp.com/make?text="
 	resp, err := http.Get(fmt.Sprintf("%s%s", url, query))
 	if err != nil {
-		log.Printf("GetAscii Error: %v", err)
+		log.Printf("GetASCII Error: %v", err)
 		return ""
 	}
 	defer resp.Body.Close()
