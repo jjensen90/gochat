@@ -53,7 +53,7 @@ func newRoom() *room {
 
 // RecentChatHistory returns array of up to `maxHistory` number of chat messages
 func RecentChatHistory(redisClient *redis.Client, maxHistory int) []string {
-	revRange := redisClient.ZRevRange(RedisChatHistoryKey, 0, -1)
+	revRange := redisClient.ZRange(RedisChatHistoryKey, 0, -1)
 	results := revRange.Val()
 
 	if len(results) < maxHistory {
@@ -65,15 +65,23 @@ func RecentChatHistory(redisClient *redis.Client, maxHistory int) []string {
 	//log.Print(maxHistory)
 
 	for i := 0; i < maxHistory; i++ {
-		log.Print(results[i])
+		//log.Print(results[i])
 		history = append(history, results[i])
+	}
+
+	sortedHistory := []string{}
+
+	for i := len(history) - 1; i > 0; i-- {
+		log.Print(i)
+		log.Print(history[i])
+		sortedHistory = append(sortedHistory, history[i])
 	}
 
 	//log.Print(history)
 
-	//log.Print(results)
+	log.Print(sortedHistory)
 
-	return history
+	return sortedHistory
 }
 
 func (r *room) run(redisClient *redis.Client) {
