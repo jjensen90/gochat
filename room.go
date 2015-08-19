@@ -12,6 +12,7 @@ import (
 
 	"github.com/Pallinder/go-randomdata"
 	"github.com/gorilla/websocket"
+	"github.com/lucasb-eyer/go-colorful"
 )
 
 const (
@@ -86,7 +87,7 @@ func (r *room) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		socket: socket,
 		send:   make(chan []byte, messageBufferSize),
 		room:   r,
-		name:   randomdata.SillyName(),
+		name:   fmt.Sprintf("<span style='color:%s'>%s</span>", colorful.HappyColor().Hex(), randomdata.SillyName()),
 	}
 
 	r.join <- client
