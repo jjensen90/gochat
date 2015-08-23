@@ -23,6 +23,7 @@ func (c *client) read() {
 	for {
 		if _, msg, err := c.socket.ReadMessage(); err == nil {
 			stringMessage := string(msg[:])
+			c.room.pluginsNotifier.NotifyPlugins(msg)
 			if Contains(c.room.commands, stringMessage) {
 				c.room.DoCommand(stringMessage, c)
 			} else {

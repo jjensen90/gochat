@@ -37,17 +37,35 @@ type room struct {
 	// clients holds all current clients in this room.
 	clients map[*client]bool
 
+	plugins []PluginHandler
+
+	pluginsNotifier PluginNotifier
+
 	commands []string
 }
 
 // newRoom makes a new room that is ready to go.
 func newRoom() *room {
-	return &room{
+	newRoom := room{
 		forward:  make(chan []byte),
 		join:     make(chan *client),
 		leave:    make(chan *client),
 		clients:  make(map[*client]bool),
 		commands: []string{"/roll", "/ascii", "/yt", "/yomama"},
+	}
+	newRoom.setUpPlugins()
+	return &newRoom
+}
+
+func (room *room) setUpPlugins() {
+	asciiPlugin := &AsciiPlugin{make(chan []byte)}
+
+	room.plugins = []PluginHandler{asciiPlugin}
+	room.pluginsNotifier = &PluginNotifierService{}
+
+	for _, plugin := range room.plugins {
+		room.pluginsNotifier.Register(plugin.GetChannel())
+		go plugin.Update()
 	}
 }
 
