@@ -5,7 +5,7 @@
 * Golang chatroom
 
 ### How do I get set up? ###
-* ```go get bitbucket.org/ecumberworth/gochat```
+* ```go get github.com/jjensen90/gochat```
 * ```go run *.go```
 * visit localhost:8080 - try running in different browsers at the same time
 
