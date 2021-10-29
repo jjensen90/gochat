@@ -6,8 +6,8 @@ import (
 	"log"
 	"net/http"
 
-	"code.google.com/p/google-api-go-client/googleapi/transport"
-	"code.google.com/p/google-api-go-client/youtube/v3"
+	"google.golang.org/api/googleapi/transport"
+	"google.golang.org/api/youtube/v3"
 )
 
 const developerKey = "DEVELOPER_KEY"
@@ -15,7 +15,7 @@ const developerKey = "DEVELOPER_KEY"
 // GetRandomWord generates a random word
 func GetRandomWord() string {
 
-	response, err := http.Get("http://randomword.setgetgo.com/get.php")
+	response, err := http.Get("https://random-word-api.herokuapp.com/word?number=1&swear=1")
 	if err != nil {
 		log.Printf("Error generating random word: %v", err)
 		return ""
@@ -23,7 +23,6 @@ func GetRandomWord() string {
 
 	defer response.Body.Close()
 	contents, err := ioutil.ReadAll(response.Body)
-	log.Printf("%v", string(contents))
 	if err != nil {
 		log.Printf("%s", err)
 	}
@@ -45,7 +44,7 @@ func GetRandomVideo() string {
 	}
 
 	// Make the API call to YouTube.
-	call := service.Search.List("id,snippet").
+	call := service.Search.List([]string{"id", "snippet"}).
 		Q(query).
 		MaxResults(25)
 	response, err := call.Do()
@@ -55,7 +54,7 @@ func GetRandomVideo() string {
 		// Iterate through each item and add it to the correct list.
 		for _, item := range response.Items {
 			if item.Id.Kind == "youtube#video" {
-				ytv := fmt.Sprintf("<iframe width=\"560\" height=\"315\" src=\"https://www.youtube.com/embed/%s\" frameborder=\"0\"></iframe>", item.Id.VideoId)
+				ytv := fmt.Sprintf("<iframe width=\"560\" height=\"315\" src=\"https://www.youtube.com/embed/%s\" title=\"YouTube video player\" frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture\" allowfullscreen></iframe>", item.Id.VideoId)
 				return ytv
 			}
 		}
